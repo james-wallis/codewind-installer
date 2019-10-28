@@ -18,12 +18,10 @@ pipeline {
 
         stage ('Build') {
             steps {
-                container('go') {
-                    sh '''
-                        echo "Script success"
+                sh '''
+                    echo "Script success"
 
-                    '''
-                }
+                '''
             }
         }
 
