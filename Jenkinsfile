@@ -2,29 +2,7 @@
 
 pipeline {
 
-    agent {
-        kubernetes {
-              label 'go-pod'
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: go
-    image: golang:1.11-stretch
-    tty: true
-    command:
-    - cat
-    resources:
-      limits:
-        memory: "2Gi"
-        cpu: "1"
-      requests:
-        memory: "2Gi"
-        cpu: "1"
-"""
-        }
-    }
+    agent none
 
     options {
         timestamps()
