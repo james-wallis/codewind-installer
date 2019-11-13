@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/eclipse/codewind-installer/config"
+	"github.com/eclipse/codewind-installer/pkg/config"
 	"github.com/eclipse/codewind-installer/pkg/connections"
 	"github.com/eclipse/codewind-installer/pkg/sechttp"
 	"github.com/urfave/cli"
@@ -136,7 +136,7 @@ func syncFiles(projectPath string, projectID string, conURL string, synctime int
 
 			fileUploadBody := FileUploadMsg{
 				IsDirectory:  info.IsDir(),
-				Mode: uint(info.Mode().Perm()),
+				Mode:         uint(info.Mode().Perm()),
 				RelativePath: relativePath,
 				Message:      "",
 			}
