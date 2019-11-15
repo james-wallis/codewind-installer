@@ -62,7 +62,6 @@ func SyncProject(c *cli.Context) (*SyncResponse, *ProjectError) {
 	projectPath := strings.TrimSpace(c.String("path"))
 	projectID := strings.TrimSpace(c.String("id"))
 	synctime := int64(c.Int("time"))
-	cliUsername := strings.TrimSpace(strings.ToLower(c.String("username")))
 	_, err := os.Stat(projectPath)
 	if err != nil {
 		return nil, &ProjectError{errBadPath, err, err.Error()}
@@ -90,7 +89,7 @@ func SyncProject(c *cli.Context) (*SyncResponse, *ProjectError) {
 	}
 
 	// Sync all the necessary project files
-	fileList, modifiedList, uploadedFilesList := syncFiles(projectPath, projectID, conURL, synctime, cliUsername, conInfo)
+	fileList, modifiedList, uploadedFilesList := syncFiles(projectPath, projectID, conURL, synctime, conInfo)
 	// Complete the upload
 	completeStatus, completeStatusCode := completeUpload(projectID, fileList, modifiedList, conURL, synctime)
 	response := SyncResponse{
@@ -102,7 +101,7 @@ func SyncProject(c *cli.Context) (*SyncResponse, *ProjectError) {
 	return &response, nil
 }
 
-func syncFiles(projectPath string, projectID string, conURL string, synctime int64, username string, connection *connections.Connection) ([]string, []string, []UploadedFile) {
+func syncFiles(projectPath string, projectID string, conURL string, synctime int64, connection *connections.Connection) ([]string, []string, []UploadedFile) {
 	var fileList []string
 	var modifiedList []string
 	var uploadedFiles []UploadedFile
@@ -164,7 +163,7 @@ func syncFiles(projectPath string, projectID string, conURL string, synctime int
 				// TODO - How do we handle partial success?
 				request, err := http.NewRequest("PUT", projectUploadURL, bytes.NewReader(buf.Bytes()))
 				request.Header.Set("Content-Type", "application/json")
-				resp, httpSecError := sechttp.DispatchHTTPRequest(client, request, username, connection.ID)
+				resp, httpSecError := sechttp.DispatchHTTPRequest(client, request, connection.Username, connection.ID)
 				uploadedFiles = append(uploadedFiles, UploadedFile{
 					FilePath:   relativePath,
 					Status:     resp.Status,

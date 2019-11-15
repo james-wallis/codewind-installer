@@ -14,6 +14,7 @@ package connections
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -114,7 +115,7 @@ func AddConnectionToList(httpClient utils.HTTPClient, c *cli.Context) (*Connecti
 	connectionID := strings.ToUpper(strconv.FormatInt(utils.CreateTimestamp(), 36))
 	label := strings.TrimSpace(c.String("label"))
 	url := strings.TrimSpace(c.String("url"))
-	username := strings.TrimSpace(c.String("url"))
+	username := strings.TrimSpace(c.String("username"))
 	if url != "" && len(strings.TrimSpace(url)) > 0 {
 		url = strings.TrimSuffix(url, "/")
 	}
@@ -122,11 +123,10 @@ func AddConnectionToList(httpClient utils.HTTPClient, c *cli.Context) (*Connecti
 	if conErr != nil {
 		return nil, conErr
 	}
-
 	// check the url and label are not already in use
 	for i := 0; i < len(data.Connections); i++ {
 		if strings.EqualFold(label, data.Connections[i].Label) || strings.EqualFold(url, data.Connections[i].URL) {
-			conErr := errors.New("Connection ID: " + connectionID + " already exists. To update, first remove and then re-add")
+			conErr := errors.New("Connection ID: " + data.Connections[i].ID + " already exists. To update, first remove and then re-add")
 			return nil, &ConError{errOpConflict, conErr, conErr.Error()}
 		}
 	}
@@ -158,6 +158,10 @@ func AddConnectionToList(httpClient utils.HTTPClient, c *cli.Context) (*Connecti
 	if err != nil {
 		return nil, &ConError{errOpFileWrite, err, err.Error()}
 	}
+
+	fmt.Println("connectionID: " + connectionID)
+	fmt.Println("username: " + username)
+
 	return &newConnection, nil
 }
 

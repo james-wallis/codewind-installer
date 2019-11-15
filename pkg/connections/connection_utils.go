@@ -31,6 +31,7 @@ const (
 	errOpNotFound     = "con_not_found"
 	errOpProtected    = "con_protected"
 	errOpGetEnv       = "con_environment"
+	errOpKeyring      = "con_keyring"
 )
 
 const (

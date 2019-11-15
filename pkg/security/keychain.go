@@ -48,10 +48,8 @@ func SecKeyUpdate(connectionID string, username string, password string) *SecErr
 
 // SecKeyGetSecret : retrieve secret / credentials from the keyring
 func SecKeyGetSecret(connectionID string, username string) (string, *SecError) {
-
 	conID := strings.TrimSpace(strings.ToLower(connectionID))
 	uName := strings.TrimSpace(strings.ToLower(username))
-
 	secret, err := keyring.Get(KeyringServiceName+"."+conID, uName)
 	if err != nil {
 		return "", &SecError{errOpKeyring, err, err.Error()}

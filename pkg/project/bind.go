@@ -61,13 +61,12 @@ func BindProject(c *cli.Context) (*BindResponse, *ProjectError) {
 	Name := strings.TrimSpace(c.String("name"))
 	Language := strings.TrimSpace(c.String("language"))
 	BuildType := strings.TrimSpace(c.String("type"))
-	cliUsername := strings.TrimSpace(strings.ToLower(c.String("username")))
 	conID := strings.TrimSpace(strings.ToLower(c.String("conid")))
-	return Bind(projectPath, Name, Language, BuildType, cliUsername, conID)
+	return Bind(projectPath, Name, Language, BuildType, conID)
 }
 
 // Bind is used to bind a project for building and running
-func Bind(projectPath string, name string, language string, projectType string, username string, conID string) (*BindResponse, *ProjectError) {
+func Bind(projectPath string, name string, language string, projectType string, conID string) (*BindResponse, *ProjectError) {
 	_, err := os.Stat(projectPath)
 	if err != nil {
 		return nil, &ProjectError{errBadPath, err, err.Error()}
@@ -87,13 +86,18 @@ func Bind(projectPath string, name string, language string, projectType string, 
 		return nil, &ProjectError{errOpConNotFound, conURLErr.Err, conURLErr.Desc}
 	}
 
+	conInfo, conInfoErr := connections.GetConnectionByID(conID)
+	if conInfoErr != nil {
+		return nil, &ProjectError{errOpConNotFound, conInfoErr.Err, conInfoErr.Desc}
+	}
+
 	bindURL := conURL + "/api/v1/projects/bind/start"
 
 	client := &http.Client{}
 
 	request, err := http.NewRequest("POST", bindURL, bytes.NewReader(buf.Bytes()))
 	request.Header.Set("Content-Type", "application/json")
-	resp, httpSecError := sechttp.DispatchHTTPRequest(client, request, username, conID)
+	resp, httpSecError := sechttp.DispatchHTTPRequest(client, request, conInfo.Username, conID)
 	if httpSecError != nil {
 		return nil, &ProjectError{errOpResponse, httpSecError.Err, httpSecError.Desc}
 	}
@@ -130,16 +134,11 @@ func Bind(projectPath string, name string, language string, projectType string, 
 		return nil, projErr
 	}
 
-	conInfo, conInfoErr := connections.GetConnectionByID(conID)
-	if conInfoErr != nil {
-		return nil, &ProjectError{errOpConNotFound, conInfoErr.Err, conInfoErr.Desc}
-	}
-
 	// Sync all the project files
-	_, _, uploadedFilesList := syncFiles(projectPath, projectID, conURL, 0, username, conInfo)
+	_, _, uploadedFilesList := syncFiles(projectPath, projectID, conURL, 0, conInfo)
 
 	// Call bind/end to complete
-	completeStatus, completeStatusCode := completeBind(projectID, conURL, username, conInfo)
+	completeStatus, completeStatusCode := completeBind(projectID, conURL, conInfo)
 	response := BindResponse{
 		ProjectID:     projectID,
 		UploadedFiles: uploadedFilesList,
@@ -149,7 +148,7 @@ func Bind(projectPath string, name string, language string, projectType string, 
 	return &response, nil
 }
 
-func completeBind(projectID string, conURL string, username string, connection *connections.Connection) (string, int) {
+func completeBind(projectID string, conURL string, connection *connections.Connection) (string, int) {
 	uploadEndURL := conURL + "/api/v1/projects/" + projectID + "/bind/end"
 
 	payload := &BindEndRequest{ProjectID: projectID}
@@ -158,7 +157,7 @@ func completeBind(projectID string, conURL string, username string, connection *
 	// Make the request to end the sync process.
 	request, err := http.NewRequest("POST", uploadEndURL, bytes.NewBuffer(jsonPayload))
 	request.Header.Set("Content-Type", "application/json")
-	resp, httpSecError := sechttp.DispatchHTTPRequest(http.DefaultClient, request, username, connection.ID)
+	resp, httpSecError := sechttp.DispatchHTTPRequest(http.DefaultClient, request, connection.Username, connection.ID)
 
 	if httpSecError != nil {
 		panic(err)
