@@ -43,6 +43,7 @@ type Connection struct {
 	AuthURL  string `json:"auth"`
 	Realm    string `json:"realm"`
 	ClientID string `json:"clientid"`
+	Username string `json:"username"`
 }
 
 // InitConfigFileIfRequired : Check the config file exist, if it does not then create a new default configuration
@@ -68,6 +69,7 @@ func ResetConnectionsFile() *ConError {
 				AuthURL:  "",
 				Realm:    "",
 				ClientID: "",
+				Username: "",
 			},
 		},
 	}
@@ -112,6 +114,7 @@ func AddConnectionToList(httpClient utils.HTTPClient, c *cli.Context) (*Connecti
 	connectionID := strings.ToUpper(strconv.FormatInt(utils.CreateTimestamp(), 36))
 	label := strings.TrimSpace(c.String("label"))
 	url := strings.TrimSpace(c.String("url"))
+	username := strings.TrimSpace(c.String("url"))
 	if url != "" && len(strings.TrimSpace(url)) > 0 {
 		url = strings.TrimSuffix(url, "/")
 	}
@@ -141,6 +144,7 @@ func AddConnectionToList(httpClient utils.HTTPClient, c *cli.Context) (*Connecti
 		AuthURL:  gatekeeperEnv.AuthURL,
 		Realm:    gatekeeperEnv.Realm,
 		ClientID: gatekeeperEnv.ClientID,
+		Username: username,
 	}
 
 	// append it to the list
