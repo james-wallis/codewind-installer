@@ -20,6 +20,7 @@ type (
 		Host           string `json:"host"`
 		LocationOnDisk string `json:"locOnDisk"`
 		AppStatus      string `json:"appStatus"`
+		PrototypeURL   string `json:"prototypeURL"`
 	}
 )
 

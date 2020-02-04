@@ -198,6 +198,35 @@ func Commands() {
 						return nil
 					},
 				},
+				{
+					Name:    "network",
+					Aliases: []string{"net"},
+					Usage:   "Manage project network connections",
+					Subcommands: []cli.Command{
+						{
+							Name:  "get",
+							Usage: "Get the network connections for a project",
+							Flags: []cli.Flag{
+								cli.StringFlag{Name: "id,i", Usage: "Project ID", Required: true},
+							},
+							Action: func(c *cli.Context) error {
+								ProjectNetworkGet(c)
+								return nil
+							},
+						}, {
+							Name:  "create",
+							Usage: "Create a new network connection to a project",
+							Flags: []cli.Flag{
+								cli.StringFlag{Name: "id,i", Usage: "Project ID of the project that will be connecting to another Codewind project", Required: true},
+								cli.StringFlag{Name: "targetid,t", Usage: "Project ID of the project which will be connected to from a Codewind project", Required: true},
+							},
+							Action: func(c *cli.Context) error {
+								ProjectNetworkCreate(c)
+								return nil
+							},
+						},
+					},
+				},
 			},
 		},
 

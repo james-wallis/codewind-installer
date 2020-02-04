@@ -254,3 +254,109 @@ func ProjectGet(c *cli.Context) {
 	}
 	os.Exit(0)
 }
+
+func ProjectNetworkGet(c *cli.Context) {
+	projectID := strings.TrimSpace(strings.ToLower(c.String("id")))
+
+	conID, conIDErr := project.GetConnectionID(projectID)
+	if conIDErr != nil {
+		HandleProjectError(conIDErr)
+		os.Exit(1)
+	}
+
+	conInfo, conInfoErr := connections.GetConnectionByID(conID)
+	if conInfoErr != nil {
+		HandleConnectionError(conInfoErr)
+		os.Exit(1)
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	if conErr != nil {
+		HandleConfigError(conErr)
+		os.Exit(1)
+	}
+
+	projectNetworkList, getProjectNetworkErr := project.GetProjectNetwork(http.DefaultClient, conInfo, conURL, projectID)
+	if getProjectNetworkErr != nil {
+		HandleProjectError(getProjectNetworkErr)
+		os.Exit(1)
+	}
+
+	if printAsJSON {
+		json, _ := json.Marshal(projectNetworkList)
+		fmt.Println(string(json))
+	} else {
+		w := new(tabwriter.Writer)
+		w.Init(os.Stdout, 0, 8, 2, '\t', 0)
+		fmt.Fprintln(w, "NETWORK ID \tPROJECT NAME \tPROJECT URL\tPROJECT ENV")
+		for networkID, network := range projectNetworkList {
+			fmt.Fprintln(w, networkID+"\t"+network.ProjectName+"\t"+network.ProjectURL+"\t"+network.Env)
+		}
+		fmt.Fprintln(w)
+		w.Flush()
+	}
+	os.Exit(0)
+}
+
+func ProjectNetworkCreate(c *cli.Context) {
+	projectID := strings.TrimSpace(strings.ToLower(c.String("id")))
+	targetProjectID := strings.TrimSpace(strings.ToLower(c.String("targetid")))
+
+	// Get the connection details for the PFE we will be making the REST call to
+	conID, conIDErr := project.GetConnectionID(projectID)
+	if conIDErr != nil {
+		HandleProjectError(conIDErr)
+		os.Exit(1)
+	}
+	conInfo, conInfoErr := connections.GetConnectionByID(conID)
+	if conInfoErr != nil {
+		HandleConnectionError(conInfoErr)
+		os.Exit(1)
+	}
+	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	if conErr != nil {
+		HandleConfigError(conErr)
+		os.Exit(1)
+	}
+
+	// Get the connection details of the target applications own PFE
+	targetConID, targetConIDErr := project.GetConnectionID(targetProjectID)
+	if targetConIDErr != nil {
+		HandleProjectError(targetConIDErr)
+		os.Exit(1)
+	}
+	targetConInfo, targetConInfoErr := connections.GetConnectionByID(targetConID)
+	if targetConInfoErr != nil {
+		fmt.Println("expefcted")
+		HandleConnectionError(targetConInfoErr)
+		os.Exit(1)
+	}
+	targetConURL, targetConErr := config.PFEOriginFromConnection(targetConInfo)
+	if targetConErr != nil {
+		HandleConfigError(targetConErr)
+		os.Exit(1)
+	}
+	// Get the project details of the target application
+	fmt.Println("targetConID " + targetConID)
+	fmt.Println("targetConUrl " + targetConURL)
+	fmt.Println("targetProjectID " + targetProjectID)
+	targetProject, targetProjectErr := project.GetProjectFromID(http.DefaultClient, targetConInfo, targetConURL, targetProjectID)
+	if targetProjectErr != nil {
+		fmt.Print("sdfsd")
+		HandleProjectError(targetProjectErr)
+		os.Exit(1)
+	}
+	fmt.Println(targetProject.PrototypeURL)
+
+	payload := project.ProjectNetwork{
+		ProjectID:     targetProject.ProjectID,
+		ProjectName:   targetProject.Name,
+		ProjectURL:    targetProject.PrototypeURL,
+		ConnectionID:  targetConID,
+		ConnectionURL: targetConURL,
+	}
+
+	pro, ject := project.CreateProjectNetwork(http.DefaultClient, conInfo, conURL, projectID, payload)
+	fmt.Print(pro)
+	fmt.Print(ject)
+}
