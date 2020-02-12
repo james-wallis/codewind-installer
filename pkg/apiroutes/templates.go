@@ -56,14 +56,10 @@ type (
 
 // GetTemplates gets project templates from PFE's REST API.
 // Filter them using the function arguments
-func GetTemplates(conID, projectStyle string, showEnabledOnly bool) ([]Template, error) {
+func GetTemplates(conID, projectStyle string, showEnabledOnly bool, httpClient utils.HTTPClient, dockerClient utils.DockerClient) ([]Template, error) {
 	conInfo, conInfoErr := connections.GetConnectionByID(conID)
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
-	}
-	dockerClient, dockerClientErr := utils.NewDockerClient()
-	if dockerClientErr != nil {
-		return nil, dockerClientErr.Err
 	}
 	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
@@ -81,8 +77,7 @@ func GetTemplates(conID, projectStyle string, showEnabledOnly bool) ([]Template,
 		query.Add("showEnabledOnly", "true")
 	}
 	req.URL.RawQuery = query.Encode()
-	client := &http.Client{}
-	resp, httpSecError := sechttp.DispatchHTTPRequest(client, req, conInfo)
+	resp, httpSecError := sechttp.DispatchHTTPRequest(httpClient, req, conInfo)
 	if httpSecError != nil {
 		return nil, httpSecError
 	}
@@ -100,14 +95,10 @@ func GetTemplates(conID, projectStyle string, showEnabledOnly bool) ([]Template,
 }
 
 // GetTemplateStyles gets all template styles from PFE's REST API
-func GetTemplateStyles(conID string) ([]string, error) {
+func GetTemplateStyles(conID string, httpClient utils.HTTPClient, dockerClient utils.DockerClient) ([]string, error) {
 	conInfo, conInfoErr := connections.GetConnectionByID(conID)
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
-	}
-	dockerClient, dockerClientErr := utils.NewDockerClient()
-	if dockerClientErr != nil {
-		return nil, dockerClientErr.Err
 	}
 	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
@@ -117,8 +108,7 @@ func GetTemplateStyles(conID string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{}
-	resp, httpSecError := sechttp.DispatchHTTPRequest(client, req, conInfo)
+	resp, httpSecError := sechttp.DispatchHTTPRequest(httpClient, req, conInfo)
 	if httpSecError != nil {
 		return nil, httpSecError
 	}

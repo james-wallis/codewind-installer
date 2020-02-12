@@ -14,6 +14,7 @@ package apiroutes
 import (
 	"errors"
 	"log"
+	"net/http"
 	"testing"
 
 	"github.com/eclipse/codewind-installer/pkg/utils"
@@ -38,75 +39,39 @@ var URLOfUnknownRepo = "https://raw.githubusercontent.com/UNKNOWN"
 var URLOfUnknownRepo2 = "https://raw.githubusercontent.com/UNKNOWN_2"
 
 func TestGetTemplates(t *testing.T) {
-	tests := map[string]struct {
-		inProjectStyle    string
-		inShowEnabledOnly bool
-		wantedType        []Template
-		wantedLength      int
-	}{
-		"get templates of all styles": {
-			inProjectStyle:    "",
-			inShowEnabledOnly: false,
-			wantedType:        []Template{},
-			wantedLength:      numTemplates,
-		},
-		"filter templates by known style (Codewind)": {
-			inProjectStyle:    "Codewind",
-			inShowEnabledOnly: false,
-			wantedType:        []Template{},
-			wantedLength:      numCodewindTemplates,
-		},
-		"filter templates by known style (Appsody)": {
-			inProjectStyle:    "Appsody",
-			inShowEnabledOnly: false,
-			wantedType:        []Template{},
-			wantedLength:      numAppsodyTemplates,
-		},
-		"filter templates by unknown style": {
-			inProjectStyle:    "unknownStyle",
-			inShowEnabledOnly: false,
-			wantedType:        []Template{},
-			wantedLength:      0,
-		},
-		"filter templates by enabled templates": {
-			inShowEnabledOnly: true,
-			wantedType:        []Template{},
-			wantedLength:      numTemplatesEnabled,
-		},
-		"filter templates by enabled templates of unknown style": {
-			inProjectStyle:    "unknownStyle",
-			inShowEnabledOnly: true,
-			wantedType:        []Template{},
-			wantedLength:      0,
-		},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := GetTemplates("local", test.inProjectStyle, test.inShowEnabledOnly)
-			assert.IsType(t, test.wantedType, got)
-			assert.True(t, len(got) >= test.wantedLength)
-			assert.Nil(t, err)
-		})
-	}
+	t.Run("Gets templates from the PFE container with a mocked httpClient", func(t *testing.T) {
+		dummyTemplateList := []Template{
+			{
+				Label:       "template1",
+				Description: "desc",
+			},
+			{
+				Label:       "template2",
+				Description: "desc",
+			},
+		}
+
+		mockBody := CreateMockResponseBody(dummyTemplateList)
+		mockClient := MockResponse{StatusCode: http.StatusOK, Body: mockBody}
+		mockDocker := &mockDockerClient{}
+
+		templates, err := GetTemplates("local", "", false, &mockClient, mockDocker)
+		assert.Nil(t, err)
+		assert.Equal(t, dummyTemplateList, templates)
+		assert.Equal(t, dummyTemplateList[0].Label, "template1")
+	})
 }
 
 func TestGetTemplateStyles(t *testing.T) {
-	tests := map[string]struct {
-		want      []string
-		wantedErr error
-	}{
-		"success case": {
-			want:      []string{"Appsody", "Codewind"},
-			wantedErr: nil,
-		},
-	}
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			got, err := GetTemplateStyles("local")
-			assert.Equal(t, test.want, got)
-			assert.IsType(t, test.wantedErr, err)
-		})
-	}
+	dummyTemplateStyles := []string{"Appsody", "Codewind"}
+
+	mockBody := CreateMockResponseBody(dummyTemplateStyles)
+	mockClient := MockResponse{StatusCode: http.StatusOK, Body: mockBody}
+	mockDocker := &mockDockerClient{}
+
+	styles, err := GetTemplateStyles("local", &mockClient, mockDocker)
+	assert.Nil(t, err)
+	assert.Equal(t, styles, dummyTemplateStyles)
 }
 
 func TestGetTemplateRepos(t *testing.T) {

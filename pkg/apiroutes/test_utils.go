@@ -13,10 +13,17 @@ package apiroutes
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/registry"
+	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // MockResponse mocks the response of a http client
@@ -55,4 +62,70 @@ func CreateMockResponseBody(mockResponse interface{}) io.ReadCloser {
 	jsonResponse, _ := json.Marshal(mockResponse)
 	body := ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse)))
 	return body
+}
+
+var mockImageSummary = []types.ImageSummary{
+	types.ImageSummary{
+		ID:          "pfe",
+		RepoDigests: []string{"eclipse/codewind-pfe", "sha256:7173b809", "test:0.0.9"},
+		RepoTags:    []string{"test:0.0.9"},
+	},
+	types.ImageSummary{
+		ID:          "performance",
+		RepoDigests: []string{"eclipse/codewind-performance", "sha256:7173b809", "test:0.0.9"},
+		RepoTags:    []string{"test:0.0.9"},
+	},
+}
+
+var mockContainerList = []types.Container{
+	types.Container{
+		Names: []string{"/codewind-pfe"},
+		ID:    "pfe",
+		Image: "eclipse/codewind-pfe:0.0.9",
+		Ports: []types.Port{types.Port{PrivatePort: 9090, PublicPort: 1000, IP: "pfe"}}},
+	types.Container{
+		Names: []string{"/codewind-performance"},
+		Image: "eclipse/codewind-performance:0.0.9"},
+}
+
+type mockDockerClient struct {
+}
+
+func (m *mockDockerClient) ImagePull(ctx context.Context, image string, imagePullOptions types.ImagePullOptions) (io.ReadCloser, error) {
+	r := ioutil.NopCloser(bytes.NewReader([]byte("")))
+	return r, nil
+}
+
+func (m *mockDockerClient) ImageList(ctx context.Context, imageListOptions types.ImageListOptions) ([]types.ImageSummary, error) {
+	return mockImageSummary, nil
+}
+
+func (m *mockDockerClient) ContainerList(ctx context.Context, containerListOptions types.ContainerListOptions) ([]types.Container, error) {
+	return mockContainerList, nil
+}
+
+func (m *mockDockerClient) ContainerStop(ctx context.Context, containerID string, timeout *time.Duration) error {
+	return nil
+}
+
+func (m *mockDockerClient) ContainerRemove(ctx context.Context, containerID string, options types.ContainerRemoveOptions) error {
+	return nil
+}
+
+func (m *mockDockerClient) ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error) {
+	return types.ContainerJSON{
+		ContainerJSONBase: &types.ContainerJSONBase{
+			HostConfig: &container.HostConfig{
+				AutoRemove: true,
+			},
+		},
+	}, nil
+}
+
+func (m *mockDockerClient) DistributionInspect(ctx context.Context, image, encodedRegistryAuth string) (registry.DistributionInspect, error) {
+	return registry.DistributionInspect{
+		Descriptor: v1.Descriptor{
+			Digest: "sha256:7173b809",
+		},
+	}, nil
 }
