@@ -18,6 +18,7 @@ import (
 
 	"github.com/eclipse/codewind-installer/pkg/config"
 	"github.com/eclipse/codewind-installer/pkg/connections"
+	"github.com/eclipse/codewind-installer/pkg/utils"
 	"github.com/urfave/cli"
 )
 
@@ -38,7 +39,12 @@ func RemoveProject(c *cli.Context) *ProjectError {
 		return &ProjectError{conInfoErr.Op, conInfoErr.Err, conInfoErr.Desc}
 	}
 
-	conURL, configErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return &ProjectError{dockerClientErr.Op, dockerClientErr.Err, dockerClientErr.Desc}
+	}
+
+	conURL, configErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if configErr != nil {
 		return &ProjectError{configErr.Op, configErr.Err, configErr.Desc}
 	}

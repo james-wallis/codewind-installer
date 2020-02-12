@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/docker/docker/client"
 	"github.com/eclipse/codewind-installer/pkg/config"
 	"github.com/eclipse/codewind-installer/pkg/connections"
 	"github.com/eclipse/codewind-installer/pkg/sechttp"
@@ -47,7 +48,7 @@ type (
 )
 
 // GetAllContainerVersions : Get the versions of each Codewind container for each given connection ID
-func GetAllContainerVersions(connectionsList []connections.Connection, cwctlVersion string, httpClient utils.HTTPClient) (ContainerVersionsList, error) {
+func GetAllContainerVersions(connectionsList []connections.Connection, cwctlVersion string, httpClient utils.HTTPClient, dockerClient *client.Client) (ContainerVersionsList, error) {
 	var containerVersionsList ContainerVersionsList
 	var connectionVersions = make(map[string]ContainerVersions)
 	var connectionVersionsErrors = make(map[string]error)
@@ -56,7 +57,7 @@ func GetAllContainerVersions(connectionsList []connections.Connection, cwctlVers
 
 	for _, connection := range connectionsList {
 		conID := connection.ID
-		conURL, conErr := config.PFEOriginFromConnection(&connection)
+		conURL, conErr := config.PFEOriginFromConnection(&connection, dockerClient)
 		if conErr != nil {
 			connectionVersionsErrors[conID] = conErr
 			continue

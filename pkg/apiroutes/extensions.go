@@ -28,7 +28,13 @@ func GetExtensions(conID string) ([]utils.Extension, error) {
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}

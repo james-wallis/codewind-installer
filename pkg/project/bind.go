@@ -93,7 +93,12 @@ func Bind(projectPath string, name string, language string, projectType string, 
 		return nil, &ProjectError{errOpConNotFound, conInfoErr.Err, conInfoErr.Desc}
 	}
 
-	conURL, conURLErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, &ProjectError{errOpConNotFound, dockerClientErr.Err, dockerClientErr.Desc}
+	}
+
+	conURL, conURLErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conURLErr != nil {
 		return nil, &ProjectError{errOpConNotFound, conURLErr.Err, conURLErr.Desc}
 	}

@@ -108,7 +108,6 @@ func SyncProject(c *cli.Context) (*SyncResponse, *ProjectError) {
 	}
 
 	conID, projErr := GetConnectionID(projectID)
-
 	if projErr != nil {
 		return nil, projErr
 	}
@@ -118,7 +117,12 @@ func SyncProject(c *cli.Context) (*SyncResponse, *ProjectError) {
 		return nil, &ProjectError{errOpConNotFound, conInfoErr, conInfoErr.Desc}
 	}
 
-	conURL, conURLErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, &ProjectError{errOpConNotFound, dockerClientErr.Err, dockerClientErr.Desc}
+	}
+
+	conURL, conURLErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conURLErr != nil {
 		return nil, &ProjectError{errOpConNotFound, conURLErr.Err, conURLErr.Desc}
 	}

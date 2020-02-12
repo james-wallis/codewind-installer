@@ -20,6 +20,7 @@ import (
 	"github.com/eclipse/codewind-installer/pkg/appconstants"
 	"github.com/eclipse/codewind-installer/pkg/config"
 	"github.com/eclipse/codewind-installer/pkg/connections"
+	"github.com/eclipse/codewind-installer/pkg/utils"
 
 	"github.com/eclipse/codewind-installer/pkg/apiroutes"
 	"github.com/eclipse/codewind-installer/pkg/remote"
@@ -45,7 +46,13 @@ func GetSingleConnectionVersion(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		HandleDockerError(dockerClientErr)
+		os.Exit(1)
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		HandleConfigError(conErr)
 		os.Exit(1)
@@ -77,7 +84,13 @@ func GetAllConnectionVersions() {
 		os.Exit(1)
 	}
 
-	containerVersionsList, err := apiroutes.GetAllContainerVersions(connections, appconstants.VersionNum, http.DefaultClient)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		HandleDockerError(dockerClientErr)
+		os.Exit(1)
+	}
+
+	containerVersionsList, err := apiroutes.GetAllContainerVersions(connections, appconstants.VersionNum, http.DefaultClient, dockerClient)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

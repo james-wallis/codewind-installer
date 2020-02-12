@@ -61,7 +61,11 @@ func GetTemplates(conID, projectStyle string, showEnabledOnly bool) ([]Template,
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}
@@ -101,7 +105,11 @@ func GetTemplateStyles(conID string) ([]string, error) {
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}
@@ -133,7 +141,11 @@ func GetTemplateRepos(conID string) ([]utils.TemplateRepo, error) {
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}
@@ -178,7 +190,13 @@ func AddTemplateRepo(conID, URL, description, name string) ([]utils.TemplateRepo
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}
@@ -224,7 +242,13 @@ func DeleteTemplateRepo(conID, URL string) ([]utils.TemplateRepo, error) {
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}
@@ -326,7 +350,13 @@ func BatchPatchTemplateRepos(conID string, operations []RepoOperation) ([]SubRes
 	if conInfoErr != nil {
 		return nil, conInfoErr.Err
 	}
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return nil, dockerClientErr.Err
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		return nil, conErr.Err
 	}

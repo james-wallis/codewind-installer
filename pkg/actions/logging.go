@@ -36,7 +36,13 @@ func LogLevels(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		fmt.Println(dockerClientErr.Err)
+		os.Exit(1)
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		fmt.Println(conErr.Err)
 		os.Exit(1)

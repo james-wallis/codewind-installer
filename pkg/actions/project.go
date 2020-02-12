@@ -22,6 +22,7 @@ import (
 	"github.com/eclipse/codewind-installer/pkg/config"
 	"github.com/eclipse/codewind-installer/pkg/connections"
 	"github.com/eclipse/codewind-installer/pkg/project"
+	"github.com/eclipse/codewind-installer/pkg/utils"
 	logr "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
@@ -162,7 +163,13 @@ func ProjectList(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		HandleDockerError(dockerClientErr)
+		os.Exit(1)
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		HandleConfigError(conErr)
 		os.Exit(1)
@@ -221,7 +228,13 @@ func ProjectGet(c *cli.Context) {
 		os.Exit(1)
 	}
 
-	conURL, conErr := config.PFEOriginFromConnection(conInfo)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		HandleDockerError(dockerClientErr)
+		os.Exit(1)
+	}
+
+	conURL, conErr := config.PFEOriginFromConnection(conInfo, dockerClient)
 	if conErr != nil {
 		HandleConfigError(conErr)
 		os.Exit(1)

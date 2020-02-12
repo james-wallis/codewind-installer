@@ -194,7 +194,12 @@ func writeCwSettingsIfNotInProject(conID string, projectPath string, BuildType s
 		return &ProjectError{errOpCreateProject, conErr, conErr.Desc}
 	}
 
-	conURL, configErr := config.PFEOriginFromConnection(connection)
+	dockerClient, dockerClientErr := utils.NewDockerClient()
+	if dockerClientErr != nil {
+		return &ProjectError{errOpCreateProject, dockerClientErr.Err, dockerClientErr.Desc}
+	}
+
+	conURL, configErr := config.PFEOriginFromConnection(connection, dockerClient)
 	if configErr != nil {
 		return &ProjectError{errOpCreateProject, conErr, configErr.Desc}
 	}
