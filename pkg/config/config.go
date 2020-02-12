@@ -16,7 +16,6 @@ import (
 	"errors"
 	"os"
 
-	"github.com/docker/docker/client"
 	"github.com/eclipse/codewind-installer/pkg/connections"
 	"github.com/eclipse/codewind-installer/pkg/utils"
 )
@@ -45,7 +44,7 @@ func (ce *ConfigError) Error() string {
 }
 
 // PFEOriginFromConnection is used when GetConnectionByID(conID) has already been called to stop it being run twice in one function
-func PFEOriginFromConnection(connection *connections.Connection, dockerClient *client.Client) (string, *ConfigError) {
+func PFEOriginFromConnection(connection *connections.Connection, dockerClient utils.DockerClient) (string, *ConfigError) {
 	if connection.ID != "local" {
 		return connection.URL, nil
 	}
@@ -56,7 +55,7 @@ func PFEOriginFromConnection(connection *connections.Connection, dockerClient *c
 	return localURL, nil
 }
 
-func getLocalHostnameAndPort(dockerClient *client.Client) (string, *ConfigError) {
+func getLocalHostnameAndPort(dockerClient utils.DockerClient) (string, *ConfigError) {
 	val, ok := os.LookupEnv("CHE_API_EXTERNAL")
 	if ok && (val != "") {
 		return "https://localhost:9090", nil
